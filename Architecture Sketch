@@ -1,0 +1,8 @@
+```mermaid
+flowchart TD
+    B["Student's browser"] -->|"HTTP request"| E["Express server and sessions"]
+    E --> R["Authentication and item routes"]
+    R <-->|"SQL queries and results"| D[("SQLite database")]
+    R -->|"Page data"| V["EJS templates"]
+    V -->|"HTML response"| B
+```
