@@ -10,7 +10,7 @@
 
 ## Steps to reproduce:
 
-1. Open the locally running board.
+1. Open the running board.
 2. Set the category and kind filters to "all."
 3. Search for "bluetag-no-match-7429" and confirm it produces no matches.
 4. Search for "bluetag-no-match-7429' OR 1=1 --" and observe the results.
