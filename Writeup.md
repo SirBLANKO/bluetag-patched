@@ -58,7 +58,7 @@ function searchItems({ q, category, kind }) {
   }
 
   sql += " ORDER BY items.created_at DESC LIMIT 50";
-  return db.prepare(sql).all();  // No parameters passed - SQL injection vulnerability!
+  return db.prepare(sql).all();  // Unsafe: user input was interpolated into the SQL above.
 }
 ```
 
@@ -128,13 +128,38 @@ The patched version uses `?` placeholders and passes values separately via `.all
 
 After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning no results when the search term is not found.
 
+## Exact test requests
+
+The following test requests are documented for reproducibility. Category and kind are tested by changing URL parameters directly, because their dropdown menus do not offer these values.
+
+**Baseline (expected: no matches):**
+```
+http://localhost:3000/?q=bluetag-no-match-7429&category=all&kind=all
+```
+
+**Search field injection (expected: no matches and no SQL error):**
+```
+http://localhost:3000/?q=bluetag-no-match-7429%27%20OR%201%3D1%20--&category=all&kind=all
+```
+
+**Category field injection (expected: no matches and no SQL error):**
+```
+http://localhost:3000/?category=keys%27%20OR%201%3D1%20--&kind=all
+```
+
+**Kind field injection (expected: no matches and no SQL error):**
+```
+http://localhost:3000/?category=all&kind=lost%27%20OR%201%3D1%20--
+```
+
 ## Normal functionality checks:
 
 | Test | Expected behavior | Actual result |
 |---|---|---|
-| Injected search (search field) | No matches and no SQL error after patch | |
-| Injected search (category field) | No matches and no SQL error after patch | |
-| Injected search (kind field) | No matches and no SQL error after patch | |
+| Baseline search | No matches | |
+| Search field injection | No matches and no SQL error | |
+| Category field injection | No matches and no SQL error | |
+| Kind field injection | No matches and no SQL error | |
 | Search for a known item | Relevant listing appears | |
 | Category and kind filters together | Both filters apply | |
 | Search containing an apostrophe | Search runs without a SQL error | |
@@ -152,10 +177,17 @@ This SQL injection vulnerability in the BlueTag board search function has been p
 - Values are passed as separate parameters to the database driver, ensuring they're treated as data only
 - The patch maintains full functionality while eliminating the SQL injection vulnerability
 
-**Testing results confirm:**
-- SQL injection payloads are no longer effective
-- All normal search and filtering functionality works as expected
-- Registration, login, and logout still worked in the functionality tests performed
-- Post creation, viewing, and resolution features function correctly
+**Verification status:**
 
-The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. The normal-use tests performed continued to pass.
+Outstanding tests:
+- Search field injection actual result
+- Category field injection actual result
+- Kind field injection actual result
+- Search for a known item actual result
+- Category and kind filters together actual result
+- Search containing an apostrophe actual result
+- Register, sign in, and sign out actual result
+- Create and view a post actual result
+- Resolve your own post actual result
+
+The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. Complete these tests and record the actual results in the table above.
