@@ -12,7 +12,7 @@
 2. Set the category and kind filters to "all."
 3. Search for something not on the board and confirm it produces no matches.
 4. Search for that same thing but add `OR 1=1 --` to the end of it.
-5. Now you can see things everything, even items that were already resolved.
+5. Now you can see everything, even items that were already resolved.
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
 
@@ -26,7 +26,7 @@ Before the patch, putting any command into the serch bar cause the page to retur
 
 **Observed behavior after the patch:** ![After patch screenshot](./Screenshot%202026-09-13%20135343.png)
 
-After the patch, putting any command into the search bar caused the page to return no valid matches.
+After the patch, putting any command into the search bar caused the page to return no valid matches. The SQL injection was successfully prevented, and the search function now behaves normally.
 
 ## Normal functionality checks:
 
@@ -39,3 +39,4 @@ After the patch, putting any command into the search bar caused the page to retu
 | Register, sign in, and sign out | Each action works | [Fill in] |
 | Create and view a post | Post is saved and displayed | [Fill in] |
 | Resolve your own post | Post becomes resolved | [Fill in] |
+
