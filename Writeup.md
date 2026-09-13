@@ -126,7 +126,7 @@ The patched version uses `?` placeholders and passes values separately via `.all
 
 **Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method.
 
-**Observed behavior after the patch:** ![After patch screenshot](Screenshot 2026-09-13 180303.png)
+**Observed behavior after the patch:** ![After patch screenshot](Screenshot 2026-09-13 180303.png and Screenshot 2026-09-13 180351.png)
 
 After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning only legitimate matches.
 
