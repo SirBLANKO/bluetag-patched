@@ -18,7 +18,11 @@
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
 
-**Observed behavior before the patch:** ![Before patch screenshot](Screenshot 2026-09-13 175803.png and Screenshot 2026-09-13 180003.png)
+**Observed behavior before the patch:**
+
+![Before patch screenshot 1](https://github.com/SirBLANKO/bluetag-patched/blob/main/Screenshot%202026-09-13%20175803.png?raw=true)
+
+![Before patch screenshot 2](https://github.com/SirBLANKO/bluetag-patched/blob/main/Screenshot%202026-09-13%20180003.png?raw=true)
 
 Before the patch, the baseline search returned no matches. Adding the injection payload caused listings unrelated to the search phrase to appear.
 
@@ -64,7 +68,7 @@ function searchItems({ q, category, kind }) {
 }
 ```
 
-In this vulnerable version, user input is directly interpolated into the SQL string using template literals. An attacker can submit `phone' OR 1=1 --` as the search term. The apostrophe closes the string and the SQL comment (--) allows injection of arbitrary conditions like `1=1`.
+In this vulnerable version, user input is directly interpolated into the SQL string using template literals. An attacker can submit `phone' OR 1=1 --` as the search term. The apostrophe closes the string literal and injects a new condition.
 
 The injected query becomes:
 ```sql
@@ -122,13 +126,17 @@ function searchItems({ q, category, kind }) {
 }
 ```
 
-The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `phone' OR 1=1 --`, it is treated as literal text to search for, not as SQL syntax.
+The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `phone' OR 1=1 --`, it will be safely escaped and searched for as a literal string.
 
-**Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method.
+**Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method. This prevents SQL injection by ensuring that user input is never parsed as SQL syntax.
 
-**Observed behavior after the patch:** ![After patch screenshot](Screenshot 2026-09-13 180303.png and Screenshot 2026-09-13 180351.png)
+**Observed behavior after the patch:**
 
-After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning only legitimate matches.
+![After patch screenshot 1](https://github.com/SirBLANKO/bluetag-patched/blob/main/Screenshot%202026-09-13%20180303.png?raw=true)
+
+![After patch screenshot 2](https://github.com/SirBLANKO/bluetag-patched/blob/main/Screenshot%202026-09-13%20180351.png?raw=true)
+
+After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning appropriate results based on actual content matches.
 
 ## Exact test requests
 
@@ -171,7 +179,7 @@ http://localhost:3000/?category=all&kind=lost%27%20OR%201%3D1%20--
 
 ## Summary
 
-This SQL injection vulnerability in the BlueTag board search function has been patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries, which ensures that user input is never interpreted as SQL code.
+This SQL injection vulnerability in the BlueTag board search function has been patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries, which is the industry-standard defense against SQL injection attacks.
 
 **Key improvements:**
 - User input is no longer directly interpolated into SQL strings using template literals
@@ -181,6 +189,6 @@ This SQL injection vulnerability in the BlueTag board search function has been p
 
 **Verification status:**
 
-All ten manual checks performed on the patched local application matched their expected results. The tests verified the search, category, and kind injection fixes and the normal application workflows all continue to function correctly.
+All ten manual checks performed on the patched local application matched their expected results. The tests verified the search, category, and kind injection fixes and confirmed that normal application workflows (registration, authentication, posting, filtering) all function correctly with the patch in place.
 
-The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. The normal-use tests performed continued to pass.
+The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. The normal-use tests performed continued to pass, confirming that the security fix does not negatively impact user-facing functionality.
