@@ -6,6 +6,8 @@
 
 **Impact:** A visitor can manipulate search results and bypass filters. The vulnerable query can also bypass the condition that excludes listings marked removed.
 
+**Live Demo:** https://bluetag-patched-uzoh.onrender.com
+
 ## Steps to reproduce:
 
 1. Open the locally running board.
