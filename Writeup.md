@@ -16,13 +16,15 @@
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
 
-**Observed behavior before the patch:** [Describe exactly what appeared. Attach a screenshot.]
+**Observed behavior before the patch:** ![Before patch screenshot](./Screenshot%202026-09-13%20134213.png)
 
 **Cause:** User input becomes part of the SQL command before the command is prepared.
 
 **Fix:** Replace interpolated values with ? placeholders for all three inputs and pass their values separately through .all(...params).
 
-**Observed behavior after the patch:** After the patch, putting any command into the search bar caused the page to return no valid matches.
+**Observed behavior after the patch:** ![After patch screenshot](./Screenshot%202026-09-13%20135343.png)
+
+After the patch, putting any command into the search bar caused the page to return no valid matches.
 
 ## Normal functionality checks:
 
