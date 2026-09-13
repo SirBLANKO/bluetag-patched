@@ -28,34 +28,77 @@ Before the patch, entering a SQL injection payload like `OR 1=1 --` into the sea
 ```javascript
 function searchItems({ q, category, kind }) {
   let sql = `
-    SELECT * FROM items
+    SELECT
+      items.id,
+      items.user_id,
+      items.kind,
+      items.category,
+      items.title,
+      items.description,
+      items.location,
+      items.contact_pref,
+      items.status,
+      items.created_at,
+      users.display_name AS owner_name
+    FROM items
+    JOIN users ON users.id = items.user_id
     WHERE items.status != 'removed'
-    AND items.title LIKE '%${q}%'
-    AND items.category = '${category}'
-    AND items.kind = '${kind}'
   `;
-  return db.prepare(sql).all();  // SQL injection happens here!
+
+  if (q) {
+    sql += ` AND items.title || ' ' || items.description || ' ' || items.location LIKE '%${q}%'`;
+  }
+
+  if (category && category !== "all") {
+    sql += ` AND items.category = '${category}'`;
+  }
+
+  if (kind && kind !== "all") {
+    sql += ` AND items.kind = '${kind}'`;
+  }
+
+  sql += " ORDER BY items.created_at DESC LIMIT 50";
+  return db.prepare(sql).all();  // No parameters passed - SQL injection vulnerability!
 }
 ```
 
-In this vulnerable version, user input is directly interpolated into the SQL string. An attacker can enter `' OR '1'='1` as the search term, which changes the query to:
+In this vulnerable version, user input is directly interpolated into the SQL string using template literals. An attacker can enter `' OR '1'='1` as the search term (q), which changes the query to:
 ```sql
-WHERE items.status != 'removed' AND items.title LIKE '%' OR '1'='1%' ...
+WHERE items.status != 'removed' AND items.title || ' ' || items.description || ' ' || items.location LIKE '%' OR '1'='1%'
 ```
-The condition `'1'='1'` is always true, bypassing the filter.
+The condition `'1'='1'` is always true, bypassing all filters and exposing resolved items.
 
 ### Patched Code (After Fix)
 ```javascript
 function searchItems({ q, category, kind }) {
   let sql = `
-    SELECT * FROM items
+    SELECT
+      items.id,
+      items.user_id,
+      items.kind,
+      items.category,
+      items.title,
+      items.description,
+      items.location,
+      items.contact_pref,
+      items.status,
+      items.created_at,
+      users.display_name AS owner_name
+    FROM items
+    JOIN users ON users.id = items.user_id
     WHERE items.status != 'removed'
   `;
 
   const params = [];
 
   if (q) {
-    sql += " AND items.title LIKE ?";
+    sql += `
+      AND (
+        items.title || ' ' ||
+        items.description || ' ' ||
+        items.location
+      ) LIKE ?
+    `;
     params.push(`%${q}%`);
   }
 
@@ -69,11 +112,12 @@ function searchItems({ q, category, kind }) {
     params.push(kind);
   }
 
-  return db.prepare(sql).all(...params);  // Parameterized query - safe!
+  sql += " ORDER BY items.created_at DESC LIMIT 50";
+  return db.prepare(sql).all(...params);  // Parameters passed separately - safe!
 }
 ```
 
-The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `' OR '1'='1`, it will be safely escaped as a literal string.
+The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `' OR '1'='1`, it will be safely escaped as a literal string and won't break the SQL logic.
 
 **Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method to use prepared statements.
 
@@ -98,7 +142,7 @@ After the patch, entering SQL injection payloads into the search bar no longer a
 This SQL injection vulnerability in the BlueTag board search function has been successfully patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries, which is the industry standard for preventing SQL injection attacks.
 
 **Key improvements:**
-- User input is no longer directly interpolated into SQL strings
+- User input is no longer directly interpolated into SQL strings using template literals
 - All three vulnerable parameters (q, category, kind) now use `?` placeholders
 - Values are passed as separate parameters to the database driver, ensuring they're treated as data only
 - The patch maintains full functionality while eliminating the security risk
