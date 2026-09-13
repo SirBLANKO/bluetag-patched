@@ -154,18 +154,18 @@ http://localhost:3000/?category=all&kind=lost%27%20OR%201%3D1%20--
 
 ## Normal functionality checks:
 
-| Test | Expected behavior | Actual result |
-|---|---|---|
-| Baseline search | No matches | |
-| Search field injection | No matches and no SQL error | |
-| Category field injection | No matches and no SQL error | |
-| Kind field injection | No matches and no SQL error | |
-| Search for a known item | Relevant listing appears | |
-| Category and kind filters together | Both filters apply | |
-| Search containing an apostrophe | Search runs without a SQL error | |
-| Register, sign in, and sign out | Each action works | |
-| Create and view a post | Post is saved and displayed | |
-| Resolve your own post | Post becomes resolved | |
+| Test | Actual result |
+|---|---|
+| Baseline search | No matching listings and no search error. |
+| Search field injection | No matching listings and no search error. |
+| Category field injection | No matching listings and no search error. |
+| Kind field injection | No matching listings and no search error. |
+| Search for a known item | The keys listing appeared; the headphones listing did not. |
+| Category and kind filters together | Both filters applied; the two filter combinations returned the expected results. |
+| Search containing an apostrophe | The O'Brien listing appeared without a search error. |
+| Register, sign in, and sign out | Registration worked; signing out blocked protected-page access; signing in restored access. |
+| Create and view a post | Both listings displayed the correct information and remained available after refreshing. |
+| Resolve your own post | The selected listing became resolved; the other listing's status remained unchanged. |
 
 ## Summary
 
@@ -179,15 +179,6 @@ This SQL injection vulnerability in the BlueTag board search function has been p
 
 **Verification status:**
 
-Outstanding tests:
-- Search field injection actual result
-- Category field injection actual result
-- Kind field injection actual result
-- Search for a known item actual result
-- Category and kind filters together actual result
-- Search containing an apostrophe actual result
-- Register, sign in, and sign out actual result
-- Create and view a post actual result
-- Resolve your own post actual result
+All ten manual checks performed on the patched local application matched their expected results. The tests verified the search, category, and kind injection fixes and the normal application workflows listed above.
 
-The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. Complete these tests and record the actual results in the table above.
+The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. The normal-use tests performed continued to pass.
