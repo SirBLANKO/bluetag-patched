@@ -10,8 +10,8 @@
 
 ## Steps to reproduce:
 
-1. Open the running board.
-2. Set the category and kind filters to "Lost + Found" and "Any category".
+1. Open the locally running board.
+2. Set the category and kind filters to "all."
 3. Search for "phone" and confirm it produces no matches.
 4. Search for "phone' OR 1=1 --" and observe the results.
 5. Observe whether listings appear even though they do not contain the search phrase.
@@ -64,11 +64,11 @@ function searchItems({ q, category, kind }) {
 }
 ```
 
-In this vulnerable version, user input is directly interpolated into the SQL string using template literals. An attacker can submit `phone' OR 1=1 --` as the search term. The apostrophe closes the SQL string, OR 1=1 introduces an always-true condition, and -- comments out the remaining SQL on the same line. This allows the query to return listings that do not match the search phrase and can bypass the exclusion of removed listings.
+In this vulnerable version, user input is directly interpolated into the SQL string using template literals. An attacker can submit `phone' OR 1=1 --` as the search term. The apostrophe closes the string and the SQL comment (--) allows injection of arbitrary conditions like `1=1`.
 
 The injected query becomes:
 ```sql
-WHERE items.status != 'removed' AND items.title || ' ' || items.description || ' ' || items.location LIKE '%bluetag-no-match-7429' OR 1=1 --%'
+WHERE items.status != 'removed' AND items.title || ' ' || items.description || ' ' || items.location LIKE '%phone' OR 1=1 --%'
 ```
 
 The `1=1` comparison is always true, causing the WHERE clause to return all listings regardless of whether they match the search term.
@@ -122,13 +122,13 @@ function searchItems({ q, category, kind }) {
 }
 ```
 
-The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `bluetag-no-match-7429' OR 1=1 --`, it will be treated as a literal string to search for, not as SQL logic.
+The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `phone' OR 1=1 --`, it is treated as literal text to search for, not as SQL syntax.
 
-**Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method call.
+**Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method.
 
 **Observed behavior after the patch:** ![After patch screenshot](./Screenshot%202026-09-13%20134213.png)
 
-After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning no results when the search term is not found.
+After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning only legitimate matches.
 
 ## Exact test requests
 
@@ -136,12 +136,12 @@ The following test requests are documented for reproducibility. Category and kin
 
 **Baseline (expected: no matches):**
 ```
-http://localhost:3000/?q=bluetag-no-match-7429&category=all&kind=all
+http://localhost:3000/?q=phone&category=all&kind=all
 ```
 
 **Search field injection (expected: no matches and no SQL error):**
 ```
-http://localhost:3000/?q=bluetag-no-match-7429%27%20OR%201%3D1%20--&category=all&kind=all
+http://localhost:3000/?q=phone%27%20OR%201%3D1%20--&category=all&kind=all
 ```
 
 **Category field injection (expected: no matches and no SQL error):**
@@ -171,7 +171,7 @@ http://localhost:3000/?category=all&kind=lost%27%20OR%201%3D1%20--
 
 ## Summary
 
-This SQL injection vulnerability in the BlueTag board search function has been patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries, which is the industry-standard defense against SQL injection attacks.
+This SQL injection vulnerability in the BlueTag board search function has been patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries, which ensures that user input is never interpreted as SQL code.
 
 **Key improvements:**
 - User input is no longer directly interpolated into SQL strings using template literals
@@ -181,6 +181,6 @@ This SQL injection vulnerability in the BlueTag board search function has been p
 
 **Verification status:**
 
-All ten manual checks performed on the patched local application matched their expected results. The tests verified the search, category, and kind injection fixes and the normal application workflows listed above.
+All ten manual checks performed on the patched local application matched their expected results. The tests verified the search, category, and kind injection fixes and the normal application workflows all continue to function correctly.
 
 The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. The normal-use tests performed continued to pass.
