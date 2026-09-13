@@ -11,9 +11,9 @@
 ## Steps to reproduce:
 
 1. Open the running board.
-2. Set the category and kind filters to "all."
-3. Search for "bluetag-no-match-7429" and confirm it produces no matches.
-4. Search for "bluetag-no-match-7429' OR 1=1 --" and observe the results.
+2. Set the category and kind filters to "Lost + Found" and "Any category".
+3. Search for "phone" and confirm it produces no matches.
+4. Search for "phone' OR 1=1 --" and observe the results.
 5. Observe whether listings appear even though they do not contain the search phrase.
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
@@ -64,7 +64,7 @@ function searchItems({ q, category, kind }) {
 }
 ```
 
-In this vulnerable version, user input is directly interpolated into the SQL string using template literals. An attacker can submit `bluetag-no-match-7429' OR 1=1 --` as the search term. The apostrophe closes the SQL string, OR 1=1 introduces an always-true condition, and -- comments out the remaining SQL on the same line. This allows the query to return listings that do not match the search phrase and can bypass the exclusion of removed listings.
+In this vulnerable version, user input is directly interpolated into the SQL string using template literals. An attacker can submit `phone' OR 1=1 --` as the search term. The apostrophe closes the SQL string, OR 1=1 introduces an always-true condition, and -- comments out the remaining SQL on the same line. This allows the query to return listings that do not match the search phrase and can bypass the exclusion of removed listings.
 
 The injected query becomes:
 ```sql
