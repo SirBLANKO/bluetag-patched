@@ -179,7 +179,7 @@ http://localhost:3000/?category=all&kind=lost%27%20OR%201%3D1%20--
 
 ## Summary
 
-This SQL injection vulnerability in the BlueTag board search function has been patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries, which is the industry-standard defense against SQL injection attacks.
+This SQL injection vulnerability in the BlueTag board search function has been patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries.
 
 **Key improvements:**
 - User input is no longer directly interpolated into SQL strings using template literals
