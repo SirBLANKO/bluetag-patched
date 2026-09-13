@@ -18,6 +18,8 @@
 
 **Observed behavior before the patch:** ![Before patch screenshot](./Screenshot%202026-09-13%20134213.png)
 
+Before the patch, putting any command into the serch bar cause the page to return all matches, even matches that we're already taken down from the board.
+
 **Cause:** User input becomes part of the SQL command before the command is prepared.
 
 **Fix:** Replace interpolated values with ? placeholders for all three inputs and pass their values separately through .all(...params).
