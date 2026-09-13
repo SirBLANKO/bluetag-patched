@@ -66,7 +66,8 @@ In this vulnerable version, user input is directly interpolated into the SQL str
 ```sql
 WHERE items.status != 'removed' AND items.title || ' ' || items.description || ' ' || items.location LIKE '%' OR '1'='1%'
 ```
-The condition `'1'='1'` is always true, bypassing all filters and exposing resolved items.
+
+**Why this works:** The `'1'='1'` comparison is always true in SQL. By injecting this into the query, the attacker effectively replaces the LIKE condition with an always-true expression. This causes the database to return all rows instead of filtering based on the search term. Combined with the `--` comment operator, the attacker can also remove any remaining filters. In this case, the result bypasses all filters and exposes resolved items.
 
 ### Patched Code (After Fix)
 ```javascript
