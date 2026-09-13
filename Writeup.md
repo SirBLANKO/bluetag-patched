@@ -11,14 +11,14 @@
 1. Open the locally running board.
 2. Set the category and kind filters to "all."
 3. Search for something not on the board and confirm it produces no matches.
-4. Search for that same thing but add `OR 1=1 --` to the end of it.
+4. Search for that same thing but add `' OR 1=1 --` to the end of it.
 5. Now you can see everything, even items that were already resolved.
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
 
 **Observed behavior before the patch:** ![Before patch screenshot](./Screenshot%202026-09-13%20135343.png)
 
-Before the patch, entering a SQL injection payload like `OR 1=1 --` into the search bar caused the page to return all matches, including items that were already resolved and taken down from the board.
+Before the patch, entering a SQL injection payload like `' OR 1=1 --` into the search bar caused the page to return all matches, including items that were already resolved and taken down from the board.
 
 **Cause:** User input becomes part of the SQL command before the command is prepared, allowing attackers to inject arbitrary SQL logic.
 
@@ -67,7 +67,7 @@ In this vulnerable version, user input is directly interpolated into the SQL str
 WHERE items.status != 'removed' AND items.title || ' ' || items.description || ' ' || items.location LIKE '%' OR '1'='1%'
 ```
 
-**Why this works:** The `'1'='1'` comparison is always true in SQL. By injecting this into the query, the attacker effectively replaces the LIKE condition with an always-true expression. This causes the database to return all rows instead of filtering based on the search term. Combined with the `--` comment operator, the attacker can also remove any remaining filters. In this case, the result bypasses all filters and exposes resolved items.
+**Why this works:** The `'1'='1'` comparison is always true in SQL. By injecting this into the query, the attacker effectively replaces the LIKE condition with an always-true expression. This causes the WHERE clause to always evaluate to true, returning all records regardless of the search term.
 
 ### Patched Code (After Fix)
 ```javascript
@@ -118,13 +118,13 @@ function searchItems({ q, category, kind }) {
 }
 ```
 
-The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `' OR '1'='1`, it will be safely escaped as a literal string and won't break the SQL logic.
+The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `' OR '1'='1`, it will be treated as a literal string to search for, not as SQL logic.
 
-**Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method to use prepared statements.
+**Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method call.
 
 **Observed behavior after the patch:** ![After patch screenshot](./Screenshot%202026-09-13%20134213.png)
 
-After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning only legitimate matches for the entered search term.
+After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning no results when the search term is not found.
 
 ## Normal functionality checks:
 
@@ -140,7 +140,7 @@ After the patch, entering SQL injection payloads into the search bar no longer a
 
 ## Summary
 
-This SQL injection vulnerability in the BlueTag board search function has been successfully patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries, which is the industry standard for preventing SQL injection attacks.
+This SQL injection vulnerability in the BlueTag board search function has been successfully patched. The fix converts the dynamic SQL query construction to use prepared statements with parameterized queries, which is the industry-standard defense against SQL injection attacks.
 
 **Key improvements:**
 - User input is no longer directly interpolated into SQL strings using template literals
