@@ -18,7 +18,7 @@
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
 
-**Observed behavior before the patch:** ![Before patch screenshot](./Screenshot%202026-09-13%20135343.png)
+**Observed behavior before the patch:** ![Before patch screenshot](Screenshot 2026-09-13 175803.png)
 
 Before the patch, the baseline search returned no matches. Adding the injection payload caused listings unrelated to the search phrase to appear.
 
