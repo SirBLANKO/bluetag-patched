@@ -16,7 +16,7 @@
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
 
-**Observed behavior before the patch:** ![Before patch screenshot](./Screenshot%202026-09-13%20134213.png)
+**Observed behavior before the patch:** ![Before patch screenshot](./Screenshot%202026-09-13%20135343.png)
 
 Before the patch, entering a SQL injection payload like `OR 1=1 --` into the search bar caused the page to return all matches, including items that were already resolved and taken down from the board.
 
@@ -24,7 +24,7 @@ Before the patch, entering a SQL injection payload like `OR 1=1 --` into the sea
 
 **Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method to use prepared statements.
 
-**Observed behavior after the patch:** ![After patch screenshot](./Screenshot%202026-09-13%20135343.png)
+**Observed behavior after the patch:** ![After patch screenshot](./Screenshot%202026-09-13%20134213.png)
 
 After the patch, entering SQL injection payloads into the search bar no longer affects the query results. The SQL injection was successfully prevented, and the search function now behaves normally, returning only legitimate matches for the entered search term.
 
