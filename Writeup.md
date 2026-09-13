@@ -32,10 +32,10 @@ After the patch, entering SQL injection payloads into the search bar no longer a
 
 | Test | Expected behavior | Actual result |
 |---|---|---|
-| Injected search | No matches or SQL error after patch | [Fill in] |
-| Search for a known item | Relevant listing appears | [Fill in] |
-| Category and kind filters together | Both filters apply | [Fill in] |
-| Search containing an apostrophe | Search runs without a SQL error | [Fill in] |
-| Register, sign in, and sign out | Each action works | [Fill in] |
-| Create and view a post | Post is saved and displayed | [Fill in] |
-| Resolve your own post | Post becomes resolved | [Fill in] |
+| Injected search | No matches or SQL error after patch | No matches or SQL error after patch |
+| Search for a known item | Relevant listing appears | Relevant listing appears |
+| Category and kind filters together | Both filters apply | Both filters apply |
+| Search containing an apostrophe | Search runs without a SQL error | Search runs without a SQL error |
+| Register, sign in, and sign out | Each action works | Each action works |
+| Create and view a post | Post is saved and displayed | Post is saved and displayed |
+| Resolve your own post | Post becomes resolved | Post becomes resolved |
