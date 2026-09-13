@@ -12,7 +12,7 @@
 2. Set the category and kind filters to "all."
 3. Search for something not on the board and confirm it produces no matches.
 4. Search for that same thing but add `OR 1=1 --` to the end of it.
-5. Now you can see things that were already resolved.
+5. Now you can see things everything, even items that were already resolved.
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
 
