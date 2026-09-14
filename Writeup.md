@@ -10,10 +10,10 @@
 
 ## Steps to reproduce:
 
-1. Open the locally running board.
+1. Open the running wesite.
 2. Set the category and kind filters to "all."
-3. Search for "phone" and confirm it produces no matches.
-4. Search for "phone' OR 1=1 --" and observe the results.
+3. Search for "phone" and it will produces no matches.
+4. Search for "phone' OR 1=1 --" and observe that you can now see every listing.
 5. Observe whether listings appear even though they do not contain the search phrase.
 
 **Expected behavior:** The app searches for the supplied text and returns no matches.
@@ -128,7 +128,7 @@ function searchItems({ q, category, kind }) {
 
 The patched version uses `?` placeholders and passes values separately via `.all(...params)`. This ensures user input is treated as data, not SQL code. Even if an attacker enters `phone' OR 1=1 --`, it will be safely escaped and searched for as a literal string.
 
-**Fix:** In the searchItems() function, replace all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Pass their values separately through the `.all(...params)` method. This prevents SQL injection by ensuring that user input is never parsed as SQL syntax.
+**Fix:** In the searchItems() function, replaced all interpolated values with `?` placeholders for the search term (q), category, and kind parameters. Passed their values separately through the `.all(...params)` method. This prevents SQL injection by ensuring that user input is never used as SQL syntax.
 
 **Observed behavior after the patch:**
 
@@ -144,22 +144,22 @@ The following test requests are documented for reproducibility. Category and kin
 
 **Baseline (expected: no matches):**
 ```
-http://localhost:3000/?q=phone&category=all&kind=all
+https://bluetag-patched-uzoh.onrender.com/?q=phone&category=all&kind=all
 ```
 
 **Search field injection (expected: no matches and no SQL error):**
 ```
-http://localhost:3000/?q=phone%27%20OR%201%3D1%20--&category=all&kind=all
+https://bluetag-patched-uzoh.onrender.com/?q=phone%27%20OR%201%3D1%20--&category=all&kind=all
 ```
 
 **Category field injection (expected: no matches and no SQL error):**
 ```
-http://localhost:3000/?category=keys%27%20OR%201%3D1%20--&kind=all
+https://bluetag-patched-uzoh.onrender.com/?category=keys%27%20OR%201%3D1%20--&kind=all
 ```
 
 **Kind field injection (expected: no matches and no SQL error):**
 ```
-http://localhost:3000/?category=all&kind=lost%27%20OR%201%3D1%20--
+https://bluetag-patched-uzoh.onrender.com/?category=all&kind=lost%27%20OR%201%3D1%20--
 ```
 
 ## Normal functionality checks:
@@ -189,6 +189,6 @@ This SQL injection vulnerability in the BlueTag board search function has been p
 
 **Verification status:**
 
-All ten manual checks performed on the patched local application matched their expected results. The tests verified the search, category, and kind injection fixes and confirmed that normal application workflows (registration, authentication, posting, filtering) all function correctly with the patch in place.
+All ten manual checks performed on the patched local application matched their expected results. The tests verified that search, category, and kind injection fixes function correctly with the patch in place.
 
-The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. The normal-use tests performed continued to pass, confirming that the security fix does not negatively impact user-facing functionality.
+The patch addresses the identified SQL injection in searchItems() by binding the search, category, and kind values separately from the SQL command. The normal-use tests performed continued to pass, confirming that the security fix does not negatively impact user functionality.
