@@ -10,7 +10,7 @@
 
 ## Steps to reproduce:
 
-1. Open the running wesite.
+1. Run the original, unpatched application locally and open http://localhost:3000.
 2. Set the category and kind filters to "all."
 3. Search for "phone" and it will produces no matches.
 4. Search for "phone' OR 1=1 --" and observe that you can now see every listing.
@@ -144,23 +144,27 @@ The following test requests are documented for reproducibility. Category and kin
 
 **Baseline (expected: no matches):**
 ```
-https://bluetag-patched-uzoh.onrender.com/?q=phone&category=all&kind=all
+http://localhost:3000/?q=phone&category=all&kind=all
 ```
 
 **Search field injection (expected: no matches and no SQL error):**
 ```
-https://bluetag-patched-uzoh.onrender.com/?q=phone%27%20OR%201%3D1%20--&category=all&kind=all
+http://localhost:3000/?q=phone%27%20OR%201%3D1%20--&category=all&kind=all
 ```
 
 **Category field injection (expected: no matches and no SQL error):**
 ```
-https://bluetag-patched-uzoh.onrender.com/?category=keys%27%20OR%201%3D1%20--&kind=all
+http://localhost:3000/?category=keys%27%20OR%201%3D1%20--&kind=all
 ```
 
 **Kind field injection (expected: no matches and no SQL error):**
 ```
-https://bluetag-patched-uzoh.onrender.com/?category=all&kind=lost%27%20OR%201%3D1%20--
+http://localhost:3000/?category=all&kind=lost%27%20OR%201%3D1%20--
 ```
+
+##Hosted testing: 
+
+Render returned HTTP 403 with a web application firewall block page for an injection test. That response demonstrates a hosting-layer block. The local before-and-after tests demonstrate the application’s SQL injection fix.
 
 ## Normal functionality checks:
 
