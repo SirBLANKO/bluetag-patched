@@ -162,7 +162,7 @@ http://localhost:3000/?category=keys%27%20OR%201%3D1%20--&kind=all
 http://localhost:3000/?category=all&kind=lost%27%20OR%201%3D1%20--
 ```
 
-##Hosted testing: 
+## Hosted testing: 
 
 Render returned HTTP 403 with a web application firewall block page for an injection test. That response demonstrates a hosting-layer block. The local before-and-after tests demonstrate the application’s SQL injection fix.
 
